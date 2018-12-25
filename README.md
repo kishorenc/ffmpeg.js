@@ -149,7 +149,7 @@ cd emsdk-portable
 source ./emsdk_env.sh
 
 cd /root # or /home/whatever
-git clone https://github.com/Kagami/ffmpeg.js.git
+git clone https://github.com/arjun-g/ffmpeg.js
 cd ffmpeg.js
 git submodule init
 git submodule update --recursive
