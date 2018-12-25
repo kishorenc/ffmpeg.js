@@ -312,8 +312,12 @@ EMCC_COMMON_ARGS = \
 
 ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS)
 	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
-		$(EMCC_COMMON_ARGS)		
+		$(EMCC_COMMON_ARGS) && \
+	mv ffmpeg-webm.js dist/ffmpeg-webm.js && \
+	mv ffmpeg-webm.wasm dist/ffmpeg-webm.wasm
 
 ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
-		$(EMCC_COMMON_ARGS)
+		$(EMCC_COMMON_ARGS) && \
+	mv ffmpeg-mp4.js dist/ffmpeg-mp4.js && \
+	mv ffmpeg-mp4.wasm dist/ffmpeg-mp4.wasm
