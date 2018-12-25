@@ -1,8 +1,8 @@
 diff --git a/configure b/configure
-index 768a781..57f72e8 100755
+index 3063cd79..0a1ecabb 100755
 --- a/configure
 +++ b/configure
-@@ -879,7 +879,7 @@ ASFLAGS="$ASFLAGS -DSTACK_ALIGNMENT=$stack_alignment"
+@@ -992,7 +992,7 @@ ASFLAGS="$ASFLAGS -DSTACK_ALIGNMENT=$stack_alignment"
  
  # skip endianness check for Intel Compiler and MSVS, as all supported platforms are little. each have flags that will cause the check to fail as well
  CPU_ENDIAN="little-endian"

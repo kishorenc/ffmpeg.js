@@ -1,0 +1,37 @@
+diff --git a/libavutil/random_seed.c b/libavutil/random_seed.c
+index 70dc509d2f..15d1e2dab2 100644
+--- a/libavutil/random_seed.c
++++ b/libavutil/random_seed.c
+@@ -133,10 +133,6 @@ uint32_t av_get_random_seed(void)
+     }
+ #endif
+ 
+-#if HAVE_ARC4RANDOM
+-    return arc4random();
+-#endif
+-
+     if (read_random(&seed, "/dev/urandom") == sizeof(seed))
+         return seed;
+     if (read_random(&seed, "/dev/random")  == sizeof(seed))
+diff --git a/libavutil/time.c b/libavutil/time.c
+index afa6658aa6..590b36774b 100644
+--- a/libavutil/time.c
++++ b/libavutil/time.c
+@@ -55,7 +55,7 @@ int64_t av_gettime(void)
+ 
+ int64_t av_gettime_relative(void)
+ {
+-#if HAVE_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
++#if 0 && HAVE_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
+ #ifdef __APPLE__
+     if (clock_gettime)
+ #endif
+@@ -70,7 +70,7 @@ int64_t av_gettime_relative(void)
+ 
+ int av_gettime_relative_is_monotonic(void)
+ {
+-#if HAVE_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
++# 0 && HAVE_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
+ #ifdef __APPLE__
+     if (!clock_gettime)
+         return 0;
