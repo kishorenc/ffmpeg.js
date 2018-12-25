@@ -31,7 +31,7 @@ index afa6658aa6..590b36774b 100644
  int av_gettime_relative_is_monotonic(void)
  {
 -#if HAVE_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
-+# 0 && HAVE_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
++#if 0 && HAVE_CLOCK_GETTIME && defined(CLOCK_MONOTONIC)
  #ifdef __APPLE__
      if (!clock_gettime)
          return 0;
