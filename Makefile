@@ -40,16 +40,20 @@ MP4_SHARED_DEPS = \
 	build/lame/dist/lib/libmp3lame.so \
 	build/x264/dist/lib/libx264.so
 
-all: webm mp4
+all: webm mp4 webm-asm mp4-asm
 webm: ffmpeg-webm.js
 mp4: ffmpeg-mp4.js
+webm-asm: ffmpeg-webm-asm.js
+mp4-asm: ffmpeg-mp4-asm.js
 
-clean: clean-js \
+clean: clean-js clean-wasm \
 	clean-freetype clean-fribidi clean-libass \
 	clean-opus clean-libvpx clean-ffmpeg-webm \
 	clean-lame clean-x264 clean-ffmpeg-mp4
 clean-js:
-	rm -f -- ffmpeg*.js
+	rm -f -- dist/ffmpeg*.js
+clean-wasm:
+	rm -f -- dist/ffmpeg*.wasm
 clean-opus:
 	-cd build/opus && rm -rf dist && make clean
 clean-freetype:
@@ -301,9 +305,7 @@ EMCC_COMMON_ARGS = \
 	--pre-js $(PRE_JS) \
 	-s EXPORT_NAME=ffmpegjs \
 	-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \
-	-s ALLOW_MEMORY_GROWTH=1 \
 	-s MODULARIZE=1 \
-	-s WASM=1 \
 	-O3 --memory-init-file 0 \
 	-o $@
   
@@ -312,12 +314,28 @@ EMCC_COMMON_ARGS = \
 
 ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS)
 	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
+		-s ALLOW_MEMORY_GROWTH=1 \
+		-s WASM=1 \
 		$(EMCC_COMMON_ARGS) && \
 	mv ffmpeg-webm.js dist/ffmpeg-webm.js && \
 	mv ffmpeg-webm.wasm dist/ffmpeg-webm.wasm
 
 ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
+		-s ALLOW_MEMORY_GROWTH=1 \
+		-s WASM=1 \
 		$(EMCC_COMMON_ARGS) && \
 	mv ffmpeg-mp4.js dist/ffmpeg-mp4.js && \
 	mv ffmpeg-mp4.wasm dist/ffmpeg-mp4.wasm
+
+ffmpeg-webm-asm.js: $(FFMPEG_WEBM_BC) $(PRE_JS)
+	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
+		-s WASM=0 \
+		$(EMCC_COMMON_ARGS) && \
+	mv ffmpeg-webm-asm.js dist/ffmpeg-webm-asm.js
+
+ffmpeg-mp4-asm.js: $(FFMPEG_MP4_BC) $(PRE_JS)
+	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
+		-s WASM=0 \
+		$(EMCC_COMMON_ARGS) && \
+	mv ffmpeg-mp4-asm.js dist/ffmpeg-mp4-asm.js
