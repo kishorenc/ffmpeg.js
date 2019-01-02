@@ -330,12 +330,18 @@ ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS)
 
 ffmpeg-webm-asm.js: $(FFMPEG_WEBM_BC) $(PRE_JS)
 	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
+		-s TOTAL_MEMORY=67108864 \
+		-s OUTLINING_LIMIT=20000 \
+		-O3 --memory-init-file 0 \
 		-s WASM=0 \
 		$(EMCC_COMMON_ARGS) && \
 	mv ffmpeg-webm-asm.js dist/ffmpeg-webm-asm.js
 
 ffmpeg-mp4-asm.js: $(FFMPEG_MP4_BC) $(PRE_JS)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
+		-s TOTAL_MEMORY=67108864 \
+		-s OUTLINING_LIMIT=20000 \
+		-O3 --memory-init-file 0 \
 		-s WASM=0 \
 		$(EMCC_COMMON_ARGS) && \
 	mv ffmpeg-mp4-asm.js dist/ffmpeg-mp4-asm.js
