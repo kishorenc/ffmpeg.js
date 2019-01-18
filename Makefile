@@ -2,53 +2,46 @@
 # You need emsdk environment installed and activated, see:
 # <https://kripken.github.io/emscripten-site/docs/getting_started/downloads.html>.
 
+# To be built on emsdk 1.37.40
+
 PRE_JS = build/pre.js
+POST_JS_WORKER = build/post-worker.js
 
-COMMON_FILTERS = aresample scale crop overlay
-COMMON_DEMUXERS = matroska ogg avi mov flv mpegps image2 mp3 concat
-COMMON_DECODERS = \
-	vp8 vp9 theora \
-	mpeg2video mpeg4 h264 hevc \
-	png mjpeg \
-	vorbis opus \
-	mp3 ac3 aac \
-	ass ssa srt webvtt
+COMMON_FILTERS = aresample trim overlay null
 
-WEBM_MUXERS = webm ogg null image2
-WEBM_ENCODERS = libvpx_vp8 libopus mjpeg
-FFMPEG_WEBM_BC = build/ffmpeg-webm/ffmpeg.bc
-LIBASS_PC_PATH = ../freetype/dist/lib/pkgconfig:../fribidi/dist/lib/pkgconfig
-FFMPEG_WEBM_PC_PATH_ = \
-	$(LIBASS_PC_PATH):\
-	../libass/dist/lib/pkgconfig:\
-	../opus/dist/lib/pkgconfig
-FFMPEG_WEBM_PC_PATH = $(subst : ,:,$(FFMPEG_WEBM_PC_PATH_))
-LIBASS_DEPS = \
-	build/fribidi/dist/lib/libfribidi.so \
-	build/freetype/dist/lib/libfreetype.so
-WEBM_SHARED_DEPS = \
-	$(LIBASS_DEPS) \
-	build/libass/dist/lib/libass.so \
-	build/opus/dist/lib/libopus.so \
-	build/libvpx/dist/lib/libvpx.so
+COMMON_DEMUXERS = aac ac3 aiff ape asf au avi flac flv matroska mov m4v mp3 mpc mpc8 ogg pcm_alaw pcm_mulaw \
+                  pcm_f64be pcm_f64le pcm_f32be pcm_f32le pcm_s32be pcm_s32le pcm_s24be pcm_s24le pcm_s16be pcm_s16le \
+                  pcm_s8 pcm_u32be pcm_u32le pcm_u24be pcm_u24le pcm_u16be pcm_u16le pcm_u8 rm shorten tak tta wav wv \
+                  xwma dsf
 
-MP4_MUXERS = mp4 mp3 null
-MP4_ENCODERS = libx264 libmp3lame aac
+COMMON_DECODERS = aac aac_latm ac3 alac als ape atrac1 atrac3 eac3 flac gsm gsm_ms mp1 mp1float mp2 mp2float mp3 \
+                  mp3adu mp3adufloat mp3float mp3on4 mp3on4float mpc7 mpc8 opus ra_144 ra_288 ralf shorten tak tta \
+                  vorbis wavpack wmalossless wmapro wmav1 wmav2 wmavoice \
+                  pcm_alaw pcm_bluray pcm_dvd pcm_f32be pcm_f32le pcm_f64be pcm_f64le pcm_lxf pcm_mulaw pcm_s8 \
+                  pcm_s8_planar pcm_s16be pcm_s16be_planar pcm_s16le pcm_s16le_planar pcm_s24be pcm_s24daud \
+                  pcm_s24le pcm_s24le_planar pcm_s32be pcm_s32le pcm_s32le_planar pcm_u8 pcm_u16be pcm_u16le \
+                  pcm_u24be pcm_u24le pcm_u32be pcm_u32le pcm_zork dsd_lsbf dsd_msbf dsd_lsbf_planar dsd_msbf_planar
+
+COMMON_PARSERS = aac aac_latm ac3 cook dca flac gsm mpegaudio tak vorbis
+
+COMMON_MUXERS = ac3 aiff asf avi mpeg1system mpeg1vcd mpeg1video h263 h264 mp3 mp4 mov mp2 ogg flv mjpeg vc1 flac wav \
+                mpegps pcm_s16le pcm_s16be pcm_s8 pcm_u16le pcm_u16be pcm_u8 mpeg2vob mpeg2svcd mpeg2video mpeg2dvd null
+
+COMMON_ENCODERS = aac ac3 h263 flv h263p h264 snow mpeg1video mp2 vc1 opus \
+                  pcm_s16le pcm_s16be pcm_s8 pcm_u16le pcm_u16be pcm_u8 \
+                  flac libmp3lame libx264 mpeg2video mpeg4 vorbis wmv1 wmv2
+
 FFMPEG_MP4_BC = build/ffmpeg-mp4/ffmpeg.bc
 FFMPEG_MP4_PC_PATH = ../x264/dist/lib/pkgconfig
 MP4_SHARED_DEPS = \
 	build/lame/dist/lib/libmp3lame.so \
 	build/x264/dist/lib/libx264.so
 
-all: webm mp4 webm-asm mp4-asm
-webm: ffmpeg-webm.js
-mp4: ffmpeg-mp4.js
-webm-asm: ffmpeg-webm-asm.js
-mp4-asm: ffmpeg-mp4-asm.js
+all: mp4
+mp4: ffmpeg-worker-mp4.js
 
 clean: clean-js clean-wasm \
-	clean-freetype clean-fribidi clean-libass \
-	clean-opus clean-libvpx clean-ffmpeg-webm \
+	clean-opus \
 	clean-lame clean-x264 clean-ffmpeg-mp4
 clean-js:
 	rm -f -- dist/ffmpeg*.js
@@ -56,20 +49,10 @@ clean-wasm:
 	rm -f -- dist/ffmpeg*.wasm
 clean-opus:
 	-cd build/opus && rm -rf dist && make clean
-clean-freetype:
-	-cd build/freetype && rm -rf dist && make clean
-clean-fribidi:
-	-cd build/fribidi && rm -rf dist && make clean
-clean-libass:
-	-cd build/libass && rm -rf dist && make clean
-clean-libvpx:
-	-cd build/libvpx && rm -rf dist && make clean
 clean-lame:
 	-cd build/lame && rm -rf dist && make clean
 clean-x264:
 	-cd build/x264 && rm -rf dist && make clean
-clean-ffmpeg-webm:
-	-cd build/ffmpeg-webm && rm -f ffmpeg.bc && make clean
 clean-ffmpeg-mp4:
 	-cd build/ffmpeg-mp4 && rm -f ffmpeg.bc && make clean
 
@@ -91,86 +74,9 @@ build/opus/dist/lib/libopus.so: build/opus/configure
 	emmake make -j8 && \
 	emmake make install
 
-build/freetype/builds/unix/configure:
-	cd build/freetype && ./autogen.sh
-
 # XXX(Kagami): host/build flags are used to enable cross-compiling
 # (values must differ) but there should be some better way to achieve
 # that: it probably isn't possible to build on x86 now.
-build/freetype/dist/lib/libfreetype.so: build/freetype/builds/unix/configure
-	cd build/freetype && \
-	emconfigure ./configure \
-		CFLAGS="-O3" \
-		--prefix="$$(pwd)/dist" \
-		--host=x86-none-linux \
-		--build=x86_64 \
-		--disable-static \
-		\
-		--without-zlib \
-		--without-bzip2 \
-		--without-png \
-		--without-harfbuzz \
-		&& \
-	emmake make -j8 && \
-	emmake make install
-
-build/fribidi/configure:
-	cd build/fribidi && ./autogen.sh
-
-build/fribidi/dist/lib/libfribidi.so: build/fribidi/configure
-	cd build/fribidi && \
-	git reset --hard && \
-	patch -p1 < ../fribidi-make.patch && \
-	emconfigure ./configure \
-		CFLAGS=-O3 \
-		NM=llvm-nm \
-		--prefix="$$(pwd)/dist" \
-		--disable-dependency-tracking \
-		--disable-debug \
-		--without-glib \
-		&& \
-	emmake make -j8 && \
-	emmake make install
-
-build/libass/configure:
-	cd build/libass && ./autogen.sh
-
-build/libass/dist/lib/libass.so: build/libass/configure $(LIBASS_DEPS)
-	cd build/libass && \
-	EM_PKG_CONFIG_PATH=$(LIBASS_PC_PATH) emconfigure ./configure \
-		CFLAGS="-O3" \
-		--prefix="$$(pwd)/dist" \
-		--disable-static \
-		--disable-enca \
-		--disable-fontconfig \
-		--disable-require-system-font-provider \
-		--disable-harfbuzz \
-		--disable-asm \
-		&& \
-	emmake make -j8 && \
-	emmake make install
-
-build/libvpx/dist/lib/libvpx.so:
-	cd build/libvpx && \
-	emconfigure ./configure \
-		--prefix="$$(pwd)/dist" \
-		--target=generic-gnu \
-		--disable-dependency-tracking \
-		--disable-multithread \
-		--disable-runtime-cpu-detect \
-		--enable-shared \
-		--disable-static \
-		\
-		--disable-examples \
-		--disable-docs \
-		--disable-unit-tests \
-		--disable-webm-io \
-		--disable-libyuv \
-		--disable-vp8-decoder \
-		--disable-vp9 \
-		&& \
-	emmake make -j8 && \
-	emmake make install
 
 build/lame/dist/lib/libmp3lame.so:
 	cd build/lame && \
@@ -261,33 +167,15 @@ FFMPEG_COMMON_ARGS = \
 	--disable-xlib \
 	--disable-zlib
 
-build/ffmpeg-webm/ffmpeg.bc: $(WEBM_SHARED_DEPS)
-	cd build/ffmpeg-webm && \
-	git reset --hard && \
-	patch -p1 < ../ffmpeg-disable-arc4random-monotonic.patch && \
-	patch -p1 < ../ffmpeg-default-font.patch && \
-	EM_PKG_CONFIG_PATH=$(FFMPEG_WEBM_PC_PATH) emconfigure ./configure \
-		$(FFMPEG_COMMON_ARGS) \
-		$(addprefix --enable-encoder=,$(WEBM_ENCODERS)) \
-		$(addprefix --enable-muxer=,$(WEBM_MUXERS)) \
-		--enable-filter=subtitles \
-		--enable-libass \
-		--enable-libopus \
-		--enable-libvpx \
-		--extra-cflags="-I../libvpx/dist/include" \
-		--extra-ldflags="-L../libvpx/dist/lib" \
-		&& \
-	emmake make -j8 && \
-	cp ffmpeg ffmpeg.bc
-
 build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	cd build/ffmpeg-mp4 && \
 	git reset --hard && \
 	patch -p1 < ../ffmpeg-disable-arc4random-monotonic.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_MP4_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
-		$(addprefix --enable-encoder=,$(MP4_ENCODERS)) \
-		$(addprefix --enable-muxer=,$(MP4_MUXERS)) \
+		$(addprefix --enable-encoder=,$(COMMON_ENCODERS)) \
+		$(addprefix --enable-muxer=,$(COMMON_MUXERS)) \
+		$(addprefix --enable-parser=,$(COMMON_PARSERS)) \
 		--enable-gpl \
 		--enable-libmp3lame \
 		--enable-libx264 \
@@ -301,47 +189,18 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 # NOTE(Kagami): Bump heap size to 64M, default 16M is not enough even
 # for simple tests and 32M tends to run slower than 64M.
 EMCC_COMMON_ARGS = \
-	--closure 1 \
-	--pre-js $(PRE_JS) \
-	-s EXPORT_NAME=ffmpegjs \
+	--closure 0 \
+	-s TOTAL_MEMORY=149880832 \
+	-s ALLOW_MEMORY_GROWTH=1 \
 	-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \
-	-s MODULARIZE=1 \
-	-O3 --memory-init-file 0 \
+	-s BINARYEN=1 \
+	-s WASM=1 \
+	-s "BINARYEN_TRAP_MODE='clamp'" -s "BINARYEN_METHOD='native-wasm'" \
+	-O2 --memory-init-file 0 \
+	--pre-js $(PRE_JS) \
 	-o $@
-  
-#	-s TOTAL_MEMORY=67108864 \
-#       -s OUTLINING_LIMIT=20000 \
 
-ffmpeg-webm.js: $(FFMPEG_WEBM_BC) $(PRE_JS)
-	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
-		-s ALLOW_MEMORY_GROWTH=1 \
-		-s WASM=1 \
-		$(EMCC_COMMON_ARGS) && \
-	mv ffmpeg-webm.js dist/ffmpeg-webm.js && \
-	mv ffmpeg-webm.wasm dist/ffmpeg-webm.wasm
-
-ffmpeg-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS)
+ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
-		-s ALLOW_MEMORY_GROWTH=1 \
-		-s WASM=1 \
-		$(EMCC_COMMON_ARGS) && \
-	mv ffmpeg-mp4.js dist/ffmpeg-mp4.js && \
-	mv ffmpeg-mp4.wasm dist/ffmpeg-mp4.wasm
-
-ffmpeg-webm-asm.js: $(FFMPEG_WEBM_BC) $(PRE_JS)
-	emcc $(FFMPEG_WEBM_BC) $(WEBM_SHARED_DEPS) \
-		-s TOTAL_MEMORY=67108864 \
-		-s OUTLINING_LIMIT=20000 \
-		-O3 --memory-init-file 0 \
-		-s WASM=0 \
-		$(EMCC_COMMON_ARGS) && \
-	mv ffmpeg-webm-asm.js dist/ffmpeg-webm-asm.js
-
-ffmpeg-mp4-asm.js: $(FFMPEG_MP4_BC) $(PRE_JS)
-	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
-		-s TOTAL_MEMORY=67108864 \
-		-s OUTLINING_LIMIT=20000 \
-		-O3 --memory-init-file 0 \
-		-s WASM=0 \
-		$(EMCC_COMMON_ARGS) && \
-	mv ffmpeg-mp4-asm.js dist/ffmpeg-mp4-asm.js
+	        --post-js $(POST_JS_WORKER) \
+		    $(EMCC_COMMON_ARGS)
