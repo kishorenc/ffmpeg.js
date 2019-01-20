@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta content="initial-scale=1, minimum-scale=1, width=device-width" name="viewport">
+  <title>ffmpeg.js</title>
+</head>
+<body>
+
+<script
+  src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
+  integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="
+  crossorigin="anonymous"></script>
+
+<script>var module = {}</script>
+<script type="text/javascript" src="ffmpeg-worker-mp4.js"></script>
+
+<script type="text/javascript">
+  function init() {
+    var stdout = "";
+    var stderr = "";
+
+    return aconv({
+      arguments: ["-version"],
+
+      print: function(data) { stdout += data + "\n"; },
+      printErr: function(data) { stderr += data + "\n"; },
+
+      stdoutBinary: function(data) {
+        console.log(data);
+      },
+
+      onExit: function(code) {
+        console.log("Process exited with code " + code);
+        console.log(stdout);
+      },
+
+      stdin: function(foo) {
+        console.log(foo)
+      },
+    });
+  }
+
+  //setTimeout(init, 5000);
+
+</script>
+
+</body>
+</html>

@@ -5,6 +5,8 @@
 # To be built on emsdk 1.37.40
 
 PRE_JS = build/pre.js
+LIBRARY_JS = build/library.js
+POST_JS_SYNC = build/post-sync.js
 POST_JS_WORKER = build/post-worker.js
 
 COMMON_FILTERS = aresample trim overlay null
@@ -170,7 +172,9 @@ FFMPEG_COMMON_ARGS = \
 build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 	cd build/ffmpeg-mp4 && \
 	git reset --hard && \
-	patch -p1 < ../ffmpeg-disable-arc4random-monotonic.patch && \
+    patch -p1 < ../ffmpeg-disable-arc4random.patch && \
+	patch -p1 < ../ffmpeg-async-stdin-stdout.patch && \
+	patch -p1 < ../ffmpeg-always-use-newlines.patch && \
 	EM_PKG_CONFIG_PATH=$(FFMPEG_MP4_PC_PATH) emconfigure ./configure \
 		$(FFMPEG_COMMON_ARGS) \
 		$(addprefix --enable-encoder=,$(COMMON_ENCODERS)) \
@@ -190,17 +194,22 @@ build/ffmpeg-mp4/ffmpeg.bc: $(MP4_SHARED_DEPS)
 # for simple tests and 32M tends to run slower than 64M.
 EMCC_COMMON_ARGS = \
 	--closure 0 \
+	-s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 \
+	-s EMTERPRETIFY_WHITELIST='["_main","_ffmpeg_parse_options","_open_files","_open_input_file","_avformat_open_input","_ff_id3v2_read","_id3v2_read_internal","_avio_read","_fill_buffer","_io_read_packet","_ffurl_read","_file_read","_avformat_find_stream_info","_read_frame_internal","_ff_read_packet","_ff_img_read_packet","_rawvideo_read_packet","_av_get_packet","_append_packet_chunked","_transcode","_av_read_frame"]' \
+	--js-library $(LIBRARY_JS) \
+	-s INVOKE_RUN=0 \
 	-s TOTAL_MEMORY=149880832 \
 	-s ALLOW_MEMORY_GROWTH=1 \
 	-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \
 	-s BINARYEN=1 \
 	-s WASM=1 \
-	-s "BINARYEN_TRAP_MODE='clamp'" -s "BINARYEN_METHOD='native-wasm'" \
+	-s MODULARIZE=1 \
+	-s EXPORT_NAME=aconv \
+	-s "BINARYEN_TRAP_MODE='clamp'" \
 	-O2 --memory-init-file 0 \
 	--pre-js $(PRE_JS) \
 	-o $@
 
 ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
-	        --post-js $(POST_JS_WORKER) \
 		    $(EMCC_COMMON_ARGS)
