@@ -197,7 +197,6 @@ EMCC_COMMON_ARGS = \
 	-s EMTERPRETIFY=1 -s EMTERPRETIFY_ASYNC=1 \
 	-s EMTERPRETIFY_WHITELIST='["_main","_ffmpeg_parse_options","_open_files","_open_input_file","_avformat_open_input","_ff_id3v2_read","_id3v2_read_internal","_avio_read","_fill_buffer","_io_read_packet","_ffurl_read","_file_read","_avformat_find_stream_info","_read_frame_internal","_ff_read_packet","_ff_img_read_packet","_rawvideo_read_packet","_av_get_packet","_append_packet_chunked","_transcode","_av_read_frame"]' \
 	--js-library $(LIBRARY_JS) \
-	-s INVOKE_RUN=0 \
 	-s TOTAL_MEMORY=149880832 \
 	-s ALLOW_MEMORY_GROWTH=1 \
 	-s AGGRESSIVE_VARIABLE_ELIMINATION=1 \

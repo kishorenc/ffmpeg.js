@@ -1,25 +1,5 @@
-var __ffmpegjs_utf8ToStr;
-
-var __ffmpegjs_print = function(line) {
-  console.log(line);
-};
-
-var __ffmpegjs_printErr = function(line) {
-  console.log(line);
-};
-
-var __ffmpegjs_initialized = false;
+var __ffmpegjs_utf8ToStr = UTF8ArrayToString;
 var __ffmpegjs_return;
-//var __ffmpegjs_opts;
-
-Module = {
-  'print': function(line) { __ffmpegjs_print(line); },
-  'printErr': function(line) { __ffmpegjs_printErr(line); },
-  'onRuntimeInitialized': function() {
-    console.log('onRuntimeInitialized called');
-    __ffmpegjs_initialized = true;
-  }
-};
 
 function __ffmpegjs_toU8(data) {
   if (Array.isArray(data) || data instanceof ArrayBuffer) {
@@ -39,7 +19,7 @@ function __ffmpegjs_toU8(data) {
 // There is no longer `NODE_STDOUT_FLUSH_WORKAROUND` and it seems to
 // be the best way to accomplish that.
 Module["preRun"] = function() {
-  console.log('preRun called!');
+  console.log('preRun called! Module.arguments = ', Module.arguments);
 
   (Module["mounts"] || []).forEach(function(mount) {
     var fs = FS.filesystems[mount["type"]];
@@ -77,7 +57,7 @@ Module["preRun"] = function() {
 };
 
 Module["postRun"] = function() {
-  console.log('postRun called!');
+  console.log('postRun called! Module.arguments = ', Module.arguments);
 
   // NOTE(Kagami): Search for files only in working directory, one
   // level depth. Since FFmpeg shouldn't normally create
@@ -106,7 +86,12 @@ Module["postRun"] = function() {
     var data = __ffmpegjs_toU8(file.contents);
     return {"name": file.name, "data": data};
   });
+
   __ffmpegjs_return = {"MEMFS": outFiles};
+
+  if(Module['postRunCallback']) {
+    Module['postRunCallback']();
+  }
 };
 
 /*function __ffmpegjs(ffmpegjs_opts) {
@@ -122,12 +107,15 @@ Module["postRun"] = function() {
   if('print' in __ffmpegjs_opts) __ffmpegjs_print = __ffmpegjs_opts['print'];
   if('printErr' in __ffmpegjs_opts) __ffmpegjs_printErr = __ffmpegjs_opts['printErr'];
 
+  console.log('ffmpegjs called');
   Module['callMain'](__ffmpegjs_opts["arguments"] || []);
+  console.log('ffmpegjs callMain called');
 
   return __ffmpegjs_return;
 }*/
 
-/*_ffmpegjs['ready'] = function(fn) {
+/*
+_ffmpegjs['ready'] = function(fn) {
   console.log('inside ready, __ffmpegjs_initialized: ', __ffmpegjs_initialized);
 
   if(__ffmpegjs_initialized) {
