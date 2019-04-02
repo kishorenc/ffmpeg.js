@@ -1,3 +1,4 @@
 /node_modules/
 /ffmpeg*.js
 a.out*
+ffmpeg-worker-mp4*.js

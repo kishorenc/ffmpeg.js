@@ -7,14 +7,90 @@
 </head>
 <body>
 
+<input type="file" id="infile" />
+
 <script
   src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
   integrity="sha256-3edrmyuQ0w65f8gfBsqowzjJe2iM6n0nKciPUp8y+7E="
   crossorigin="anonymous"></script>
 
-<script type="text/javascript" src="ffmpeg-worker-mp4.js"></script>
+<!--<script type="text/javascript" src="ffmpeg-worker.js"></script>-->
 
 <script type="text/javascript">
+  var worker = new Worker('ffmpeg-worker-mp4.js');
+
+  $("input:file").change(function() {
+     var file = this.files[0];
+     initAsync(file);
+  });
+
+  function initAsync(file) {
+    var stdout = "";
+    var stderr = "";
+    var offset = 0;
+
+    worker.onmessage = function(e) {
+      var msg = e.data;
+
+      switch (msg.type) {
+        case 'stdInRequest':
+            console.log('stdInRequest, msg.size:', msg.size);
+            var blob = file.slice(offset, offset+msg.size);
+            offset += msg.size;            
+
+            var fileReader = new FileReader();
+            fileReader.onload = function(event) {
+                var arrayBuffer = event.target.result;
+                var bytes = new Uint8Array(arrayBuffer);
+                bytes = bytes.subarray(0, msg.size);
+                console.log('bytes', bytes);
+                worker.postMessage({type: 'stdInResponse', 'data': bytes});
+            };
+
+            fileReader.readAsArrayBuffer(blob);
+            break;
+        case 'binary':
+            console.log('binary', msg.data);
+            break;
+        case 'stdout':
+            stdout += msg.data;
+            break;
+        case 'stderr':
+            stderr += msg.data;
+            break;
+        case 'done':
+            console.log('stdout', stdout);
+            console.log('stderr', stderr);
+            /*var memfs_out = msg.data.MEMFS[0];
+            if(memfs_out) {
+              var output = new Blob([msg.data.MEMFS[0].data], { type: js_converter.outmimetype });
+              js_converter.callback(null, output);
+            }*/
+            break;
+        case 'exit':
+            // msg.data is the exit code
+            if(msg.data != 0) {
+              console.log('Error while converting file.');
+            }
+            break;
+        default:
+            break;
+      }
+    };
+
+    worker.postMessage({
+        type: 'run',
+        mounts: [
+          {
+            type: "WORKERFS",
+            opts: { files: [file] },
+            mountpoint: '/data'
+          }
+        ],
+        args: ["-i", "/data/"+file.name, "-f", "mp3", "pipe:1"]
+    });
+  }
+
   function init() {
     var stdout = "";
     var stderr = "";

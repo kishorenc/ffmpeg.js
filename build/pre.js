@@ -93,35 +93,3 @@ Module["postRun"] = function() {
     Module['postRunCallback']();
   }
 };
-
-/*function __ffmpegjs(ffmpegjs_opts) {
-  __ffmpegjs_utf8ToStr = UTF8ArrayToString;
-  __ffmpegjs_opts = ffmpegjs_opts || {};
-
-  Object.keys(__ffmpegjs_opts).forEach(function(key) {
-    if (['mounts', 'MEMFS', 'arguments', 'print', 'printErr'].indexOf(key) === -1) {
-      Module[key] = __ffmpegjs_opts[key];
-    }
-  });
-
-  if('print' in __ffmpegjs_opts) __ffmpegjs_print = __ffmpegjs_opts['print'];
-  if('printErr' in __ffmpegjs_opts) __ffmpegjs_printErr = __ffmpegjs_opts['printErr'];
-
-  console.log('ffmpegjs called');
-  Module['callMain'](__ffmpegjs_opts["arguments"] || []);
-  console.log('ffmpegjs callMain called');
-
-  return __ffmpegjs_return;
-}*/
-
-/*
-_ffmpegjs['ready'] = function(fn) {
-  console.log('inside ready, __ffmpegjs_initialized: ', __ffmpegjs_initialized);
-
-  if(__ffmpegjs_initialized) {
-    fn();
-  } else {
-    Module["onRuntimeInitialized"] = fn;
-  }
-};
-*/

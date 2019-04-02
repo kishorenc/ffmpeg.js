@@ -160,6 +160,7 @@ FFMPEG_COMMON_ARGS = \
 	$(addprefix --enable-decoder=,$(COMMON_DECODERS)) \
 	$(addprefix --enable-demuxer=,$(COMMON_DEMUXERS)) \
 	--enable-protocol=file \
+	--enable-protocol=pipe \
 	$(addprefix --enable-filter=,$(COMMON_FILTERS)) \
 	--disable-bzlib \
 	--disable-iconv \
@@ -209,6 +210,6 @@ EMCC_COMMON_ARGS = \
 	--pre-js $(PRE_JS) \
 	-o $@
 
-ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC) $(PRE_JS) $(POST_JS_WORKER)
+ffmpeg-worker-mp4.js: $(FFMPEG_MP4_BC)
 	emcc $(FFMPEG_MP4_BC) $(MP4_SHARED_DEPS) \
-		    $(EMCC_COMMON_ARGS)
+    $(EMCC_COMMON_ARGS)
