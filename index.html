@@ -50,22 +50,37 @@
             fileReader.readAsArrayBuffer(blob);
             break;
         case 'binary':
-            console.log('binary', msg.data);
+            console.log('binary received');
             break;
         case 'stdout':
             stdout += msg.data;
             break;
         case 'stderr':
-            stderr += msg.data;
+            if(msg.data == "\n") {
+              console.log(stderr);
+              stderr = ""
+            } else {
+              stderr += msg.data;
+            }
             break;
         case 'done':
             console.log('stdout', stdout);
             console.log('stderr', stderr);
-            /*var memfs_out = msg.data.MEMFS[0];
+            var memfs_out = msg.data.MEMFS[0];
             if(memfs_out) {
-              var output = new Blob([msg.data.MEMFS[0].data], { type: js_converter.outmimetype });
-              js_converter.callback(null, output);
-            }*/
+              var blob = new Blob([msg.data.MEMFS[0].data], { type: 'audio/mp3' });
+              var blobUrl = URL.createObjectURL(blob);
+
+              var a = document.createElement("a");
+              document.body.appendChild(a);
+              a.style = "display: none";
+              a.href = blobUrl;
+
+              a.download = 'foo.mp3';
+              a.click();
+              window.URL.revokeObjectURL(blobUrl);
+
+            }
             break;
         case 'exit':
             // msg.data is the exit code
@@ -87,55 +102,10 @@
             mountpoint: '/data'
           }
         ],
-        args: ["-i", "/data/"+file.name, "-f", "mp3", "pipe:1"]
+       args: ["-i", "/data/"+file.name, "/work/out.mp3"],
+       //args: ["-i", "/data/"+file.name, "-f", "mp3", "pipe:1"]
     });
   }
-
-  function init() {
-    var stdout = "";
-    var stderr = "";
-
-    aconv({
-      arguments: ["-version"],
-
-      print: function(data) { stdout += data + "\n"; },
-      printErr: function(data) { stderr += data + "\n"; },
-
-      stdoutBinary: function(data) {
-        console.log(data);
-      },
-
-      stdout: function(data) {
-        stdout += String.fromCharCode(data);
-      },
-
-      stderr: function(data) {
-        console.log(data);
-      },
-
-      onExit: function(code) {
-        console.log("Process exited with code " + code);
-        console.log(stdout);
-        console.log(stderr);
-      },
-
-      onAbort: function(code) {
-        console.log("Process exited with code " + code);
-        console.log(stdout);
-        console.log(stderr);
-      },
-
-      stdin: function(foo) {
-        console.log(foo)
-      },
-
-      postRunCallback: function() {
-        console.log(stdout);
-      }
-    });
-  }
-
-  //setTimeout(init, 5000);
 
 </script>
 

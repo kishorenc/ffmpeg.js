@@ -90,6 +90,6 @@ Module["postRun"] = function() {
   __ffmpegjs_return = {"MEMFS": outFiles};
 
   if(Module['postRunCallback']) {
-    Module['postRunCallback']();
+    Module['postRunCallback'](__ffmpegjs_return);
   }
 };

@@ -2,3 +2,4 @@
 /ffmpeg*.js
 a.out*
 ffmpeg-worker-mp4*.js
+dist/*
