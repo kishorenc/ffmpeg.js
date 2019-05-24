@@ -19,7 +19,7 @@ function __ffmpegjs_toU8(data) {
 // There is no longer `NODE_STDOUT_FLUSH_WORKAROUND` and it seems to
 // be the best way to accomplish that.
 Module["preRun"] = function() {
-  console.log('preRun called! Module.arguments = ', Module.arguments);
+  //console.log('preRun called! Module.arguments = ', Module.arguments);
 
   (Module["mounts"] || []).forEach(function(mount) {
     var fs = FS.filesystems[mount["type"]];

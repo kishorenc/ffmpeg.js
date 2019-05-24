@@ -63,3 +63,5 @@ self.onmessage = function(e) {
         aconv(opts);
     }
 };
+
+self.postMessage({"type": "ready"});
